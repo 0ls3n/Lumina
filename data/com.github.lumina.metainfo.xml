@@ -11,6 +11,7 @@
       install, remove, and update operations.
     </p>
   </description>
+  <icon type="stock">com.github.lumina</icon>
   <launchable type="desktop-id">com.github.lumina.desktop</launchable>
   <content_rating type="oars-1.1"/>
   <releases>

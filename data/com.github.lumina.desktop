@@ -2,7 +2,7 @@
 Name=Lumina
 Comment=Transparent package manager for Arch Linux
 Exec=lumina
-Icon=system-software-install
+Icon=com.github.lumina
 Terminal=false
 Type=Application
 Categories=System;PackageManager;

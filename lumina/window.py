@@ -1,6 +1,8 @@
+import shutil
+import subprocess
 from pathlib import Path
 
-from lumina import gi_init
+from lumina import APP_ID, gi_init
 
 gi_init.ensure()
 
@@ -31,7 +33,9 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.helper = detect_helper()
         self._syncing_nav = False
         self.set_title(APP_NAME)
-        self.set_icon_name("system-software-install")
+        install_app_icon()
+        self.set_icon_name(APP_ID)
+        Gtk.Window.set_default_icon_name(APP_ID)
         self.set_default_size(prefs.width, prefs.height)
         self._load_css()
         self._build()
@@ -364,3 +368,54 @@ class LuminaWindow(Adw.ApplicationWindow):
             provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
         )
+
+
+def install_app_icon() -> None:
+    root = Path(__file__).resolve().parent / "icons"
+    display = Gdk.Display.get_default()
+    if display is not None and root.is_dir():
+        theme = Gtk.IconTheme.get_for_display(display)
+        theme.add_search_path(str(root))
+    install_user_icon()
+
+
+def install_user_icon() -> None:
+    source = Path(__file__).resolve().parent / "icons" / "hicolor"
+    if not source.is_dir():
+        return
+    icon_root = Path.home() / ".local" / "share" / "icons" / "hicolor"
+    for icon in source.glob("*/apps/com.github.lumina.png"):
+        destination = icon_root / icon.relative_to(source)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if not destination.exists() or destination.read_bytes() != icon.read_bytes():
+            destination.write_bytes(icon.read_bytes())
+    applications = Path.home() / ".local" / "share" / "applications"
+    applications.mkdir(parents=True, exist_ok=True)
+    launcher = Path(__file__).resolve().parents[1] / "bin" / "lumina"
+    command = f'"{launcher}"' if " " in str(launcher) else str(launcher)
+    desktop = applications / "com.github.lumina.desktop"
+    desktop.write_text(
+        "\n".join(
+            [
+                "[Desktop Entry]",
+                "Name=Lumina",
+                "Comment=Transparent package manager for Arch Linux",
+                f"Exec={command}",
+                "Icon=com.github.lumina",
+                "Terminal=false",
+                "Type=Application",
+                "Categories=System;PackageManager;",
+                "Keywords=pacman;aur;packages;arch;",
+                "StartupNotify=true",
+                "StartupWMClass=com.github.lumina",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    for cache_tool in ("gtk4-update-icon-cache", "gtk-update-icon-cache"):
+        if shutil.which(cache_tool):
+            subprocess.run([cache_tool, "-f", "-t", str(icon_root)], check=False, capture_output=True)
+            break
+    if shutil.which("update-desktop-database"):
+        subprocess.run(["update-desktop-database", str(applications)], check=False, capture_output=True)
