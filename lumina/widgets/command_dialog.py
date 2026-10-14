@@ -24,6 +24,7 @@ class CommandDialog(Adw.Dialog):
         on_finished: Callable[[int], None],
         preview: Callable[[], PreviewResult] | None = None,
         preview_title: str = "Packages",
+        destructive: bool = False,
     ) -> None:
         super().__init__()
         self._build_argv = build_argv
@@ -43,6 +44,7 @@ class CommandDialog(Adw.Dialog):
         self._summary = summary
         self._confirm_label = confirm_label
         self._preview_title = preview_title
+        self._destructive = destructive
         self._build()
         self._refresh_command()
         if preview is None:
@@ -122,7 +124,7 @@ class CommandDialog(Adw.Dialog):
         self.cancel_button = Gtk.Button(label="Cancel")
         self.cancel_button.connect("clicked", self._on_cancel)
         self.confirm_button = Gtk.Button(label=self._confirm_label)
-        self.confirm_button.add_css_class("suggested-action")
+        self.confirm_button.add_css_class("destructive-action" if self._destructive else "suggested-action")
         self.confirm_button.connect("clicked", self._on_confirm)
         actions.append(self.cancel_button)
         actions.append(self.confirm_button)

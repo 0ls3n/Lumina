@@ -11,7 +11,7 @@ from lumina.backend.aur import detect_helper, helper_status
 from lumina.utils.preferences import Preferences
 from lumina.views.installed import InstalledView
 from lumina.views.search import SearchView
-from lumina.views.tools import build_tools_view
+from lumina.views.tools import ToolsView
 from lumina.views.updates import UpdatesView
 
 NAV_ITEMS = (
@@ -75,6 +75,10 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.refresh_button = Gtk.Button(icon_name="view-refresh-symbolic")
         self.refresh_button.set_tooltip_text("Refresh (F5)")
         self.refresh_button.connect("clicked", self._refresh)
+        self.update_button = Gtk.Button(label="Update system")
+        self.update_button.add_css_class("suggested-action")
+        self.update_button.set_tooltip_text("Upgrade all installed packages")
+        self.update_button.connect("clicked", self._update_system)
         self.remove_button = Gtk.Button(label="Remove")
         self.remove_button.add_css_class("destructive-action")
         self.remove_button.set_sensitive(False)
@@ -85,6 +89,7 @@ class LuminaWindow(Adw.ApplicationWindow):
         content_header.pack_end(menu_button)
         content_header.pack_end(self.remove_button)
         content_header.pack_end(self.refresh_button)
+        content_header.pack_end(self.update_button)
 
         self.installed = InstalledView(self.prefs.filter, self.prefs.paned_position)
         self.installed.connect("heading-changed", self._on_heading_changed)
@@ -97,11 +102,15 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.search = SearchView()
         self.search.connect("heading-changed", self._on_search_heading)
         self.search.on_packages_changed = self.installed.refresh
+        self.tools = ToolsView()
+        self.tools.connect("heading-changed", self._on_tools_heading)
+        self.tools.on_packages_changed = self.installed.refresh
+        self.tools.on_show_orphans = self._show_orphans
         self.stack = Gtk.Stack()
         self.stack.add_named(self.installed, "installed")
         self.stack.add_named(self.updates, "updates")
         self.stack.add_named(self.search, "search")
-        self.stack.add_named(build_tools_view(), "tools")
+        self.stack.add_named(self.tools, "tools")
         content_toolbar = Adw.ToolbarView()
         content_toolbar.add_top_bar(content_header)
         content_toolbar.set_content(self.stack)
@@ -138,12 +147,14 @@ class LuminaWindow(Adw.ApplicationWindow):
 
     def _menu(self) -> Gio.Menu:
         menu = Gio.Menu()
+        menu.append("Update system", "win.update-system")
         menu.append("Keyboard Shortcuts", "win.shortcuts")
         menu.append("About Lumina", "win.about")
         menu.append("Quit", "app.quit")
         return menu
 
     def _add_actions(self) -> None:
+        self._action("update-system", self._update_system)
         self._action("refresh", self._refresh)
         self._action("remove", self._remove)
         self._action("focus-search", self._focus_search)
@@ -160,7 +171,7 @@ class LuminaWindow(Adw.ApplicationWindow):
             return
         page_id = row.get_name() or "installed"
         installed_actions = page_id in ("apps", "installed", "orphans")
-        self.refresh_button.set_visible(installed_actions or page_id in ("updates", "search"))
+        self.refresh_button.set_visible(installed_actions or page_id in ("updates", "search", "tools"))
         self.remove_button.set_visible(installed_actions)
         if page_id == "apps":
             self.stack.set_visible_child_name("installed")
@@ -186,11 +197,25 @@ class LuminaWindow(Adw.ApplicationWindow):
             self.stack.set_visible_child_name("search")
             self.search.announce()
             return
+        if page_id == "tools":
+            self.stack.set_visible_child_name("tools")
+            self.tools.ensure_loaded()
+            return
         self.stack.set_visible_child_name(page_id)
-        titles = {
-            "tools": ("Tools", "Not in this release"),
-        }
-        title, subtitle = titles.get(page_id, (APP_NAME, ""))
+
+    def _show_orphans(self) -> None:
+        self._syncing_nav = True
+        self.nav.select_row(self.rows["orphans"])
+        self._syncing_nav = False
+        self.stack.set_visible_child_name("installed")
+        self.refresh_button.set_visible(True)
+        self.remove_button.set_visible(True)
+        self.installed.set_filter("orphans")
+        self.installed.announce_heading()
+
+    def _on_tools_heading(self, _view: ToolsView, title: str, subtitle: str) -> None:
+        if self.stack.get_visible_child_name() != "tools":
+            return
         self.title.set_title(title)
         self.title.set_subtitle(subtitle)
 
@@ -212,6 +237,12 @@ class LuminaWindow(Adw.ApplicationWindow):
             return
         label.set_label(str(count))
         label.set_visible(count > 0)
+        if count > 0:
+            self.update_button.set_label(f"Update ({count})")
+            self.update_button.set_tooltip_text(f"Upgrade all installed packages ({count} pending)")
+        else:
+            self.update_button.set_label("Update system")
+            self.update_button.set_tooltip_text("Upgrade all installed packages")
 
     def _on_heading_changed(self, _view: InstalledView, title: str, subtitle: str) -> None:
         if self.stack.get_visible_child_name() != "installed":
@@ -234,12 +265,17 @@ class LuminaWindow(Adw.ApplicationWindow):
     def _on_selection_changed(self, _view: InstalledView, has_selection: bool) -> None:
         self.remove_button.set_sensitive(has_selection)
 
+    def _update_system(self, *_args: object) -> None:
+        self.updates.update_system()
+
     def _refresh(self, *_args: object) -> None:
         page = self.stack.get_visible_child_name()
         if page == "updates":
             self.updates.refresh()
         elif page == "search":
             self.search.repeat()
+        elif page == "tools":
+            self.tools.refresh()
         elif page == "installed":
             self.installed.refresh()
 
@@ -273,6 +309,7 @@ class LuminaWindow(Adw.ApplicationWindow):
     def _show_shortcuts(self, *_args: object) -> None:
         dialog = Adw.ShortcutsDialog()
         section = Adw.ShortcutsSection(title="Packages")
+        section.add(Adw.ShortcutsItem(title="Update system", accelerator="<Control>u"))
         section.add(Adw.ShortcutsItem(title="Search", accelerator="<Control>f"))
         section.add(Adw.ShortcutsItem(title="Refresh", accelerator="F5"))
         section.add(Adw.ShortcutsItem(title="Remove selected package", accelerator="Delete"))

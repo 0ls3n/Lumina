@@ -140,12 +140,14 @@ class UpdatesView(Gtk.Box):
     def update_system(self) -> None:
         helper = helper_status()
         aur = [item.label for item in self._updates if item.source == "aur"]
+        uses_helper = "AUR helper:" in helper
         summary = (
             "This upgrades official packages and AUR packages. "
             "AUR builds run as your user. pkexec is only used for the pacman transaction."
-            if "AUR helper:" in helper
+            if uses_helper
             else "This runs pacman -Syu. You may be asked to authenticate."
         )
+        subtitle = f"{helper.split(': ', 1)[-1]} -Syu" if uses_helper else "pacman -Syu"
 
         def preview() -> PreviewResult:
             official = preview_official_upgrades()
@@ -155,7 +157,7 @@ class UpdatesView(Gtk.Box):
 
         self._present(
             title="Update system",
-            subtitle="pacman -Syu",
+            subtitle=subtitle,
             summary=summary,
             confirm_label="Update",
             build_argv=system_update_command,

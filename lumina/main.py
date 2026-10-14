@@ -21,6 +21,7 @@ class LuminaApplication(Adw.Application):
         self._set_accels()
 
     def _set_accels(self) -> None:
+        self.set_accels_for_action("win.update-system", ["<primary>u"])
         self.set_accels_for_action("win.refresh", ["F5"])
         self.set_accels_for_action("win.remove", ["Delete"])
         self.set_accels_for_action("win.focus-search", ["<primary>f"])
