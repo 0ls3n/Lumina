@@ -1,0 +1,35 @@
+.package-badge {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+  background-color: alpha(@accent_color, 0.18);
+  color: @accent_color;
+}
+
+.package-badge.foreign {
+  background-color: alpha(@warning_color, 0.22);
+  color: @warning_color;
+}
+
+.package-badge.local {
+  background-color: alpha(@window_fg_color, 0.12);
+}
+
+.command-preview {
+  font-family: monospace;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background-color: alpha(@window_fg_color, 0.06);
+}
+
+textview.operation-log {
+  font-family: monospace;
+}
+
+.warning-text {
+  color: @warning_color;
+}
+
+.sidebar-footer {
+  padding: 8px 16px 14px;
+}

@@ -1,0 +1,32 @@
+[project]
+name = "lumina"
+version = "0.1.0"
+description = "A transparent graphical package manager for Arch Linux"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["arch", "pacman", "gtk", "package-manager"]
+classifiers = [
+  "Environment :: X11 Applications :: GTK",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Software Distribution",
+]
+
+[project.scripts]
+lumina = "lumina.main:main"
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["lumina*"]
+
+[tool.setuptools.package-data]
+lumina = ["*.css"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

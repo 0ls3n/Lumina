@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.github.lumina</id>
+  <name>Lumina</name>
+  <summary>Transparent package manager for Arch Linux</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <description>
+    <p>
+      Lumina is a GTK4 and libadwaita package manager for Arch Linux.
+      It shows the real pacman command and live output before and during
+      install, remove, and update operations.
+    </p>
+  </description>
+  <launchable type="desktop-id">com.github.lumina.desktop</launchable>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-10-14"/>
+  </releases>
+</component>

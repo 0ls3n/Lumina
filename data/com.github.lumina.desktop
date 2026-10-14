@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Lumina
+Comment=Transparent package manager for Arch Linux
+Exec=lumina
+Icon=system-software-install
+Terminal=false
+Type=Application
+Categories=System;PackageManager;
+Keywords=pacman;aur;packages;arch;
+StartupNotify=true
+StartupWMClass=com.github.lumina

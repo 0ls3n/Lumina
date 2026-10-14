@@ -1,0 +1,44 @@
+Name            : bash
+Version         : 5.3.20-1
+Description     : The GNU Bourne Again shell
+Architecture    : x86_64
+URL             : https://www.gnu.org/software/bash/bash.html
+Licenses        : GPL-3.0-or-later
+Groups          : None
+Provides        : sh
+Depends On      : readline  glibc  ncurses
+Optional Deps   : bash-completion: for tab completion
+Required By     : pacman  systemd
+Optional For    : None
+Conflicts With  : None
+Replaces        : None
+Installed Size  : 9.59 MiB
+Packager        : Tobias Powalowski <tpowa@archlinux.org>
+Build Date      : Tue Sep 15 21:47:19 2026
+Install Date    : Wed Oct  7 15:33:42 2026
+Install Reason  : Installed as a dependency for another package
+Install Script  : Yes
+Validated By    : Signature
+
+Name            : python
+Version         : 3.14.8-1
+Description     : The Python programming language
+Architecture    : x86_64
+URL             : https://www.python.org/
+Licenses        : PSF-2.0
+Groups          : None
+Provides        : python3
+Depends On      : bzip2  openssl
+Optional Deps   : python-setuptools: for building packages [installed]
+                  python-pip: for installing packages
+                  sqlite: for a default database
+Required By     : None
+Optional For    : None
+Conflicts With  : None
+Replaces        : python3
+Installed Size  : 73.79 MiB
+Packager        : Jelle van der Waa <jelle@archlinux.org>
+Build Date      : Fri Oct  2 12:23:31 2026
+Install Date    : Wed Oct 14 12:54:23 2026
+Install Reason  : Explicitly installed
+Validated By    : Signature
