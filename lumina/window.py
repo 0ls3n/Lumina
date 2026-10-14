@@ -12,7 +12,7 @@ from lumina.utils.preferences import Preferences
 from lumina.views.installed import InstalledView
 from lumina.views.search import build_search_view
 from lumina.views.tools import build_tools_view
-from lumina.views.updates import build_updates_view
+from lumina.views.updates import UpdatesView
 
 NAV_ITEMS = (
     ("apps", "Apps", "view-app-grid-symbolic"),
@@ -38,6 +38,7 @@ class LuminaWindow(Adw.ApplicationWindow):
         self._add_actions()
         self.connect("close-request", self._on_close)
         self.installed.refresh()
+        self.updates.refresh()
 
     def _build(self) -> None:
         self.toast = Adw.ToastOverlay()
@@ -52,6 +53,7 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.nav.add_css_class("navigation-sidebar")
         self.nav.connect("row-selected", self._on_nav_selected)
         self.rows: dict[str, Gtk.ListBoxRow] = {}
+        self.nav_counts: dict[str, Gtk.Label] = {}
         for page_id, title, icon_name in NAV_ITEMS:
             row = self._nav_row(page_id, title, icon_name)
             self.rows[page_id] = row
@@ -72,7 +74,7 @@ class LuminaWindow(Adw.ApplicationWindow):
         content_header.set_title_widget(self.title)
         self.refresh_button = Gtk.Button(icon_name="view-refresh-symbolic")
         self.refresh_button.set_tooltip_text("Refresh (F5)")
-        self.refresh_button.connect("clicked", lambda *_args: self.installed.refresh())
+        self.refresh_button.connect("clicked", self._refresh)
         self.remove_button = Gtk.Button(label="Remove")
         self.remove_button.add_css_class("destructive-action")
         self.remove_button.set_sensitive(False)
@@ -88,9 +90,13 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.installed.connect("heading-changed", self._on_heading_changed)
         self.installed.connect("filter-changed", self._on_filter_changed)
         self.installed.connect("selection-changed", self._on_selection_changed)
+        self.updates = UpdatesView()
+        self.updates.connect("heading-changed", self._on_updates_heading)
+        self.updates.connect("count-changed", self._on_update_count)
+        self.updates.on_packages_changed = self.installed.refresh
         self.stack = Gtk.Stack()
         self.stack.add_named(self.installed, "installed")
-        self.stack.add_named(build_updates_view(), "updates")
+        self.stack.add_named(self.updates, "updates")
         self.stack.add_named(build_search_view(), "search")
         self.stack.add_named(build_tools_view(), "tools")
         content_toolbar = Adw.ToolbarView()
@@ -117,7 +123,13 @@ class LuminaWindow(Adw.ApplicationWindow):
         box.set_margin_end(12)
         box.append(Gtk.Image.new_from_icon_name(icon_name))
         label = Gtk.Label(label=title, xalign=0, hexpand=True)
+        count = Gtk.Label()
+        count.add_css_class("caption")
+        count.add_css_class("dim-label")
+        count.set_visible(False)
         box.append(label)
+        box.append(count)
+        self.nav_counts[page_id] = count
         row.set_child(box)
         return row
 
@@ -145,30 +157,49 @@ class LuminaWindow(Adw.ApplicationWindow):
             return
         page_id = row.get_name() or "installed"
         installed_actions = page_id in ("apps", "installed", "orphans")
-        self.refresh_button.set_visible(installed_actions)
+        self.refresh_button.set_visible(installed_actions or page_id == "updates")
         self.remove_button.set_visible(installed_actions)
         if page_id == "apps":
             self.stack.set_visible_child_name("installed")
             self.installed.set_filter("apps")
+            self.installed.announce_heading()
             return
         if page_id == "orphans":
             self.stack.set_visible_child_name("installed")
             self.installed.set_filter("orphans")
+            self.installed.announce_heading()
             return
         if page_id == "installed":
             self.stack.set_visible_child_name("installed")
             if self.installed.get_filter() in ("orphans", "apps"):
                 self.installed.set_filter("all")
+            self.installed.announce_heading()
+            return
+        if page_id == "updates":
+            self.stack.set_visible_child_name("updates")
+            self.updates.ensure_loaded()
             return
         self.stack.set_visible_child_name(page_id)
         titles = {
-            "updates": ("Updates", "Not in this release"),
             "search": ("Search", "Not in this release"),
             "tools": ("Tools", "Not in this release"),
         }
         title, subtitle = titles.get(page_id, (APP_NAME, ""))
         self.title.set_title(title)
         self.title.set_subtitle(subtitle)
+
+    def _on_updates_heading(self, _view: UpdatesView, title: str, subtitle: str) -> None:
+        if self.stack.get_visible_child_name() != "updates":
+            return
+        self.title.set_title(title)
+        self.title.set_subtitle(subtitle)
+
+    def _on_update_count(self, _view: UpdatesView, count: int) -> None:
+        label = self.nav_counts.get("updates")
+        if label is None:
+            return
+        label.set_label(str(count))
+        label.set_visible(count > 0)
 
     def _on_heading_changed(self, _view: InstalledView, title: str, subtitle: str) -> None:
         if self.stack.get_visible_child_name() != "installed":
@@ -192,7 +223,10 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.remove_button.set_sensitive(has_selection)
 
     def _refresh(self, *_args: object) -> None:
-        if self.stack.get_visible_child_name() == "installed":
+        page = self.stack.get_visible_child_name()
+        if page == "updates":
+            self.updates.refresh()
+        elif page == "installed":
             self.installed.refresh()
 
     def _remove(self, *_args: object) -> None:

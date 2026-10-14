@@ -107,6 +107,9 @@ class InstalledView(Gtk.Box):
     def focus_search(self) -> None:
         self.filter_bar.focus_search()
 
+    def announce_heading(self) -> None:
+        self._emit_heading()
+
     def get_filter(self) -> str:
         return self._filter
 
