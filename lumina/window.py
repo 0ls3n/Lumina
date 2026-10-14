@@ -10,7 +10,7 @@ from lumina import APP_NAME, __version__
 from lumina.backend.aur import detect_helper, helper_status
 from lumina.utils.preferences import Preferences
 from lumina.views.installed import InstalledView
-from lumina.views.search import build_search_view
+from lumina.views.search import SearchView
 from lumina.views.tools import build_tools_view
 from lumina.views.updates import UpdatesView
 
@@ -94,10 +94,13 @@ class LuminaWindow(Adw.ApplicationWindow):
         self.updates.connect("heading-changed", self._on_updates_heading)
         self.updates.connect("count-changed", self._on_update_count)
         self.updates.on_packages_changed = self.installed.refresh
+        self.search = SearchView()
+        self.search.connect("heading-changed", self._on_search_heading)
+        self.search.on_packages_changed = self.installed.refresh
         self.stack = Gtk.Stack()
         self.stack.add_named(self.installed, "installed")
         self.stack.add_named(self.updates, "updates")
-        self.stack.add_named(build_search_view(), "search")
+        self.stack.add_named(self.search, "search")
         self.stack.add_named(build_tools_view(), "tools")
         content_toolbar = Adw.ToolbarView()
         content_toolbar.add_top_bar(content_header)
@@ -157,7 +160,7 @@ class LuminaWindow(Adw.ApplicationWindow):
             return
         page_id = row.get_name() or "installed"
         installed_actions = page_id in ("apps", "installed", "orphans")
-        self.refresh_button.set_visible(installed_actions or page_id == "updates")
+        self.refresh_button.set_visible(installed_actions or page_id in ("updates", "search"))
         self.remove_button.set_visible(installed_actions)
         if page_id == "apps":
             self.stack.set_visible_child_name("installed")
@@ -179,12 +182,21 @@ class LuminaWindow(Adw.ApplicationWindow):
             self.stack.set_visible_child_name("updates")
             self.updates.ensure_loaded()
             return
+        if page_id == "search":
+            self.stack.set_visible_child_name("search")
+            self.search.announce()
+            return
         self.stack.set_visible_child_name(page_id)
         titles = {
-            "search": ("Search", "Not in this release"),
             "tools": ("Tools", "Not in this release"),
         }
         title, subtitle = titles.get(page_id, (APP_NAME, ""))
+        self.title.set_title(title)
+        self.title.set_subtitle(subtitle)
+
+    def _on_search_heading(self, _view: SearchView, title: str, subtitle: str) -> None:
+        if self.stack.get_visible_child_name() != "search":
+            return
         self.title.set_title(title)
         self.title.set_subtitle(subtitle)
 
@@ -226,6 +238,8 @@ class LuminaWindow(Adw.ApplicationWindow):
         page = self.stack.get_visible_child_name()
         if page == "updates":
             self.updates.refresh()
+        elif page == "search":
+            self.search.repeat()
         elif page == "installed":
             self.installed.refresh()
 
@@ -236,6 +250,9 @@ class LuminaWindow(Adw.ApplicationWindow):
             self.installed.remove_selected()
 
     def _focus_search(self, *_args: object) -> None:
+        if self.stack.get_visible_child_name() == "search":
+            self.search.focus_search()
+            return
         self._syncing_nav = True
         nav_id = {"orphans": "orphans", "apps": "apps"}.get(self.installed.get_filter(), "installed")
         self.nav.select_row(self.rows[nav_id])
