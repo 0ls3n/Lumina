@@ -83,10 +83,11 @@ class InstalledView(Gtk.Box):
         def success(result: object) -> None:
             if generation != self._load_gen:
                 return
-            self._loading = False
             packages = result if isinstance(result, list) else []
             self.package_list.set_packages(packages)
             self.stack.set_visible_child_name("content")
+            self._loading = False
+            self._emit_heading()
             if self._selected_name:
                 self.package_list.select_name(self._selected_name)
             self._on_package_selected()
@@ -162,8 +163,9 @@ class InstalledView(Gtk.Box):
         self.emit("selection-changed", package is not None)
 
     def _on_count_changed(self, _list: PackageList, shown: int, total: int) -> None:
-        if self.stack.get_visible_child_name() == "content":
-            self._emit_heading(format_count(shown, total))
+        if self._loading:
+            return
+        self._emit_heading(format_count(shown, total))
 
     def _emit_heading(self, subtitle: str | None = None) -> None:
         titles = {"apps": "Apps", "orphans": "Orphans"}
