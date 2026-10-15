@@ -391,8 +391,12 @@ def install_user_icon() -> None:
             destination.write_bytes(icon.read_bytes())
     applications = Path.home() / ".local" / "share" / "applications"
     applications.mkdir(parents=True, exist_ok=True)
-    launcher = Path(__file__).resolve().parents[1] / "bin" / "lumina"
-    command = f'"{launcher}"' if " " in str(launcher) else str(launcher)
+    installed = shutil.which("lumina")
+    if installed:
+        command = installed
+    else:
+        launcher = Path(__file__).resolve().parents[1] / "bin" / "lumina"
+        command = f'"{launcher}"' if " " in str(launcher) else str(launcher)
     desktop = applications / "com.github.lumina.desktop"
     desktop.write_text(
         "\n".join(

@@ -15,18 +15,28 @@ Lumina lists installed packages, shows where they came from, and removes them on
 - `polkit` (`pkexec`, plus a graphical authentication agent)
 - Optional: `paru` or `yay` (detected at startup; `paru` is preferred)
 
+## Install
+
+On Arch Linux:
+
+```sh
+./install.sh
+```
+
+That installs the required packages, the `lumina` command, the desktop entry, and the icon used by Waybar and the app launcher. Use `./install.sh --system` to install for every user under `/usr/local`. Remove it with `./install.sh --uninstall`.
+
 ## Run
 
-From this directory:
+After installing:
+
+```sh
+lumina
+```
+
+From a git checkout, without installing:
 
 ```sh
 python -m lumina
-```
-
-Or:
-
-```sh
-./bin/lumina
 ```
 
 ## What works now
