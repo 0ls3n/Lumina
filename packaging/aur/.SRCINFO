@@ -1,6 +1,6 @@
 pkgbase = lumina-pacman-git
 	pkgdesc = Transparent GTK4 package manager for Arch Linux
-	pkgver = r7.182b9ff
+	pkgver = r8.da37a2d
 	pkgrel = 1
 	url = https://github.com/0ls3n/Lumina
 	arch = any

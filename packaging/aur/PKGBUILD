@@ -1,7 +1,7 @@
 # Maintainer: olsen <Rasmus782@gmail.com>
 
 pkgname=lumina-pacman-git
-pkgver=r7.182b9ff
+pkgver=r8.da37a2d
 pkgrel=1
 pkgdesc="Transparent GTK4 package manager for Arch Linux"
 arch=('any')
