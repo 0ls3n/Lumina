@@ -3,6 +3,8 @@ name = "lumina"
 version = "0.1.0"
 description = "A transparent graphical package manager for Arch Linux"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 keywords = ["arch", "pacman", "gtk", "package-manager"]
 classifiers = [

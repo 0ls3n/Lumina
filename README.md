@@ -17,7 +17,15 @@ Lumina lists installed packages, shows where they came from, and removes them on
 
 ## Install
 
-On Arch Linux:
+From the AUR:
+
+```sh
+yay -S lumina-pacman-git
+```
+
+`paru -S lumina-pacman-git` works too. The package name is not `lumina`: that name is already used by another AUR package.
+
+On Arch Linux, from this checkout:
 
 ```sh
 ./install.sh

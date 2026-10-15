@@ -1,0 +1,28 @@
+pkgbase = lumina-pacman-git
+	pkgdesc = Transparent GTK4 package manager for Arch Linux
+	pkgver = r7.182b9ff
+	pkgrel = 1
+	url = https://github.com/0ls3n/Lumina
+	arch = any
+	license = MIT
+	makedepends = git
+	makedepends = python-build
+	makedepends = python-installer
+	makedepends = python-setuptools
+	makedepends = python-wheel
+	depends = python
+	depends = python-gobject
+	depends = gtk4
+	depends = libadwaita
+	depends = pacman
+	depends = polkit
+	depends = hicolor-icon-theme
+	optdepends = paru: AUR helper
+	optdepends = yay: AUR helper
+	optdepends = polkit-gnome: graphical authentication agent
+	provides = lumina-pacman
+	conflicts = lumina-pacman
+	source = git+https://github.com/0ls3n/Lumina.git#branch=main
+	sha256sums = SKIP
+
+pkgname = lumina-pacman-git

@@ -4,6 +4,7 @@
   <name>Lumina</name>
   <summary>Transparent package manager for Arch Linux</summary>
   <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
   <description>
     <p>
       Lumina is a GTK4 and libadwaita package manager for Arch Linux.
