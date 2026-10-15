@@ -10,21 +10,20 @@ Install, remove, and update show the command first. You confirm it, then the out
 
 ## Install
 
-From the AUR:
+Not on the AUR yet.
 
 ```sh
-yay -S lumina-pacman-git
+curl -fsSL https://lumina.0ls3n.dk/install.sh | bash
 ```
 
-`paru -S lumina-pacman-git` works too. The package name is not `lumina`. That name is already used.
-
-On Arch, from this checkout:
+That installs the libraries Lumina needs, the `lumina` command, the desktop entry, and the icon. Add `--system` to install for every user under `/usr/local`. Add `--uninstall` to remove it.
 
 ```sh
-./install.sh
+curl -fsSL https://lumina.0ls3n.dk/install.sh | bash -s -- --system
+curl -fsSL https://lumina.0ls3n.dk/install.sh | bash -s -- --uninstall
 ```
 
-That installs the libraries Lumina needs, the `lumina` command, the desktop entry, and the icon. `./install.sh --system` installs for every user under `/usr/local`. `./install.sh --uninstall` removes it.
+From this checkout, `./install.sh` does the same thing.
 
 ## Run
 
